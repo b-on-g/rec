@@ -1,0 +1,10 @@
+{
+	"name": "bog_rec_demo",
+	"short_name": "bog_rec_demo",
+	"description": "",
+	"id": "bog_rec_demo",
+	"start_url": ".",
+	"display": "standalone",
+	"background_color": "#000000",
+	"theme_color": "#000000"
+}
