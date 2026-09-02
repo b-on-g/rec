@@ -11379,6 +11379,9 @@ var $;
          * воркспейса. Ключи чужих корней, разобранные по путям видов, в запись не попадают.
          */
         static suits(key, root) {
+            /// Свои ключи не берём никогда, иначе с `keep` запись вложится сама в себя
+            if (key === this.store_key || key === this.config_key)
+                return false;
             const filter = this.config.keys;
             if (filter)
                 return filter(key);
