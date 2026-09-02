@@ -40,6 +40,8 @@ namespace $ {
 
 		static store_key = 'bog_rec_session'
 
+		static config_key = 'bog_rec_config'
+
 		static win() {
 			return $mol_dom_context
 		}
@@ -137,6 +139,34 @@ namespace $ {
 
 			return session.events.length
 
+		}
+
+		/**
+		 * Взводит автосброс так, чтобы он пережил перезагрузку: настройки ложатся
+		 * в `localStorage`, откуда их читает автозапуск при следующей загрузке.
+		 * Функции сюда не кладут, только простые значения.
+		 */
+		static arm( config: Pick< $bog_rec_take_config, 'keep' | 'sink' | 'calls' > = { keep: true } ) {
+			this.win().localStorage?.setItem( this.config_key, JSON.stringify( config ) )
+			Object.assign( this.config, config )
+			return config
+		}
+
+		/** Снимает взвод. */
+		static disarm() {
+			this.win().localStorage?.removeItem( this.config_key )
+		}
+
+		/** Настройки, оставленные для следующей загрузки. */
+		static armed(): $bog_rec_take_config {
+			const text = this.win().localStorage?.getItem( this.config_key )
+			if( !text ) return {}
+			try {
+				return JSON.parse( text ) as $bog_rec_take_config
+			} catch( error ) {
+				$mol_fail_log( error )
+				return {}
+			}
 		}
 
 		/** Кладёт запись в `localStorage`, чтобы она пережила перезагрузку. */
