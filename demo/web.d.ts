@@ -4725,6 +4725,7 @@ declare namespace $ {
         /** Последняя остановленная сессия: её ещё можно забрать после `stop()`. */
         static last: null | $bog_rec_session;
         static store_key: string;
+        static config_key: string;
         static win(): typeof globalThis;
         /** Адрес бандла, которым сейчас исполняется приложение. */
         static bundle(): string;
@@ -4743,6 +4744,16 @@ declare namespace $ {
          * рекордер не имеет права подмешивать свой интерфейс в чужое приложение.
          */
         static save(session?: $bog_rec_session | null): number;
+        /**
+         * Взводит автосброс так, чтобы он пережил перезагрузку: настройки ложатся
+         * в `localStorage`, откуда их читает автозапуск при следующей загрузке.
+         * Функции сюда не кладут, только простые значения.
+         */
+        static arm(config?: Pick<$bog_rec_take_config, 'keep' | 'sink' | 'calls'>): Pick<$bog_rec_take_config, "keep" | "sink" | "calls">;
+        /** Снимает взвод. */
+        static disarm(): void;
+        /** Настройки, оставленные для следующей загрузки. */
+        static armed(): $bog_rec_take_config;
         /** Кладёт запись в `localStorage`, чтобы она пережила перезагрузку. */
         static store(session?: $bog_rec_session | null): void;
         /** Достаёт отложенную запись. */

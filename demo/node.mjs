@@ -11216,6 +11216,7 @@ var $;
         /** Последняя остановленная сессия: её ещё можно забрать после `stop()`. */
         static last = null;
         static store_key = 'bog_rec_session';
+        static config_key = 'bog_rec_config';
         static win() {
             return $mol_dom_context;
         }
@@ -11290,6 +11291,33 @@ var $;
             link.click();
             URL.revokeObjectURL(uri);
             return session.events.length;
+        }
+        /**
+         * Взводит автосброс так, чтобы он пережил перезагрузку: настройки ложатся
+         * в `localStorage`, откуда их читает автозапуск при следующей загрузке.
+         * Функции сюда не кладут, только простые значения.
+         */
+        static arm(config = { keep: true }) {
+            this.win().localStorage?.setItem(this.config_key, JSON.stringify(config));
+            Object.assign(this.config, config);
+            return config;
+        }
+        /** Снимает взвод. */
+        static disarm() {
+            this.win().localStorage?.removeItem(this.config_key);
+        }
+        /** Настройки, оставленные для следующей загрузки. */
+        static armed() {
+            const text = this.win().localStorage?.getItem(this.config_key);
+            if (!text)
+                return {};
+            try {
+                return JSON.parse(text);
+            }
+            catch (error) {
+                $mol_fail_log(error);
+                return {};
+            }
         }
         /** Кладёт запись в `localStorage`, чтобы она пережила перезагрузку. */
         static store(session = this.current()) {
@@ -11737,13 +11765,16 @@ var $;
      * Включает запись сессии при загрузке бандла.
      * Подключается через `include \/bog/rec/take/auto` в meta.tree приложения.
      *
+     * Настройки берутся из взвода, оставленного прошлой загрузкой
+     * (`$bog_rec_take.arm()`), поэтому автосброс переживает перезагрузку.
+     *
      * Без объявленного в разметке корня записывать нечего: так модуль молчит
      * и в ноде, где приложения нет вовсе.
      */
     function $bog_rec_take_auto() {
         if (!$bog_rec_take.root())
             return;
-        $bog_rec_take.start();
+        $bog_rec_take.start($bog_rec_take.armed());
     }
     if ($bog_rec_take.root()) {
         $bog_rec_take_auto();
