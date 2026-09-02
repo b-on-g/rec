@@ -10,8 +10,12 @@ $bog_rec_app $mol_page
 			hint \Сначала
 			title \⟲
 			click? <=> restart? null
+		<= Back $mol_button_minor
+			hint \Шаг назад
+			title \←
+			click? <=> back? null
 		<= Step $mol_button_minor
-			hint \Один шаг
+			hint \Шаг вперёд
 			title \→
 			click? <=> step? null
 		<= Toggle $mol_button_minor

@@ -19,7 +19,7 @@ namespace $ {
 	export type $bog_rec_event = {
 		/** Смещение от старта сессии, мс. */
 		time: number
-		/** Путь вида, например `$bog_rec_demo.Root<0>.More<>`. */
+		/** Путь вида, вроде `Root<0>.Menu<>.Row<"2">` с именем корневого класса впереди. */
 		view: string
 		/** Имя DOM-события. */
 		kind: string
@@ -46,6 +46,10 @@ namespace $ {
 		started: number
 		/** Хвост адреса на момент старта, вида `#!page=home`. */
 		arg: string
+		/** Язык документа, чтобы фрейм выглядел как оригинал. */
+		lang: string
+		/** Значение `mol_theme` у корня документа. */
+		theme: string
 		viewport: [ number, number ]
 		local: [ string, string ][]
 		store: [ string, string ][]
@@ -94,6 +98,8 @@ namespace $ {
 				root,
 				started: Date.now(),
 				arg: '',
+				lang: '',
+				theme: '',
 				viewport: [ 0, 0 ],
 				local: [],
 				store: [],

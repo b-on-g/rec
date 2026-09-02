@@ -1,0 +1,39 @@
+name: $bog_rec_app
+
+permissions: write-all
+
+on:
+    workflow_dispatch:
+    push:
+    pull_request:
+
+concurrency:
+    group: deploy-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: hyoo-ru/mam_build@master2
+              with:
+                  package: "bog/rec"
+                  # Подопытное приложение собирается отдельным бандлом намеренно:
+                  # просмотрщик поднимает его во фрейме как чужое приложение,
+                  # а не подключает к себе.
+                  modules: "app demo"
+
+            # Просмотрщик в корне. `clean-exclude: demo` обязателен: без него
+            # rsync --delete снёс бы подопытное приложение, которое кладётся следом.
+            - uses: hyoo-ru/gh-deploy@v4.4.1
+              if: github.ref == 'refs/heads/main'
+              with:
+                  folder: "bog/rec/app/-"
+                  clean-exclude: demo
+
+            - uses: hyoo-ru/gh-deploy@v4.4.1
+              if: github.ref == 'refs/heads/main'
+              with:
+                  folder: "bog/rec/demo/-"
+                  target-folder: demo

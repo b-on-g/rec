@@ -11,6 +11,10 @@ namespace $ {
 		calls?: boolean
 		/** Какие ключи хранилищ попадают в запись. По умолчанию чужие приложения отсеиваются. */
 		keys?: ( key: string )=> boolean
+		/** Держать запись в `localStorage`, чтобы она пережила перезагрузку и падение. */
+		keep?: boolean
+		/** Куда слать запись при уходе со страницы. */
+		sink?: string
 	}
 
 	/**
@@ -27,6 +31,14 @@ namespace $ {
 		static config = {} as $bog_rec_take_config
 
 		static detach = null as null | ( ()=> void )
+
+		/** Родной `fetch`, чтобы отправка записи не попадала в саму запись. */
+		static fetch_orig = null as null | typeof globalThis.fetch
+
+		/** Последняя остановленная сессия: её ещё можно забрать после `stop()`. */
+		static last = null as null | $bog_rec_session
+
+		static store_key = 'bog_rec_session'
 
 		static win() {
 			return $mol_dom_context
@@ -63,6 +75,8 @@ namespace $ {
 			)
 
 			session.arg = win.location.hash
+			session.lang = win.document.documentElement.lang
+			session.theme = win.document.documentElement.getAttribute( 'mol_theme' ) ?? ''
 			session.viewport = [ win.innerWidth, win.innerHeight ]
 			session.local = this.dump( win.localStorage, session.root )
 			session.store = this.dump( win.sessionStorage, session.root )
@@ -75,6 +89,7 @@ namespace $ {
 
 			this.wrap_rand( win )
 			this.wrap_net( win )
+			this.watch( win )
 
 			return session
 
@@ -84,9 +99,98 @@ namespace $ {
 		static stop() {
 			const session = this.session
 			this.session = null
+			this.last = session
 			this.detach?.()
 			this.detach = null
 			return session
+		}
+
+		/** Текущая или последняя записанная сессия. */
+		static current() {
+			return this.session ?? this.last
+		}
+
+		/** JSON записи. Обычно вызывается из консоли. */
+		static text( session = this.current() ) {
+			if( !session ) return $mol_fail( new Error( 'Запись не найдена' ) )
+			return $bog_rec.text( session )
+		}
+
+		/**
+		 * Скачивает запись файлом. Вызывается ИЗ КОНСОЛИ, кнопки в приложении нет и не будет:
+		 * рекордер не имеет права подмешивать свой интерфейс в чужое приложение.
+		 */
+		static save( session = this.current() ) {
+
+			if( !session ) return $mol_fail( new Error( 'Запись не найдена' ) )
+
+			const doc = this.win().document
+			const blob = new Blob([ $bog_rec.text( session ) ], { type: 'application/json' })
+			const uri = URL.createObjectURL( blob )
+
+			const link = doc.createElement( 'a' )
+			link.href = uri
+			link.download = `${ session.root }-${ session.id }.rec.json`
+			link.click()
+
+			URL.revokeObjectURL( uri )
+
+			return session.events.length
+
+		}
+
+		/** Кладёт запись в `localStorage`, чтобы она пережила перезагрузку. */
+		static store( session = this.current() ) {
+			if( !session ) return
+			try {
+				this.win().localStorage?.setItem( this.store_key, $bog_rec.text( session ) )
+			} catch( error ) {
+				$mol_fail_log( error )
+			}
+		}
+
+		/** Достаёт отложенную запись. */
+		static stored() {
+			const text = this.win().localStorage?.getItem( this.store_key )
+			return text ? $bog_rec.parse( text ) : null
+		}
+
+		static forget() {
+			this.win().localStorage?.removeItem( this.store_key )
+		}
+
+		/** Отправляет запись на приёмник. Идёт мимо собственной обёртки, чтобы не писать саму себя. */
+		static send( url: string, session = this.current() ) {
+
+			if( !session ) return
+
+			const native = this.fetch_orig ?? this.win().fetch
+
+			native( url, {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: $bog_rec.text( session ),
+				keepalive: true,
+			} ).catch( error => $mol_fail_log( error ) )
+
+		}
+
+		/** Сбрасывает запись туда, куда просили в настройках. */
+		static flush() {
+			if( !this.session ) return
+			if( this.config.keep ) this.store()
+			if( this.config.sink ) this.send( this.config.sink )
+		}
+
+		/** Уход со страницы — последний момент, когда запись ещё можно спасти. */
+		static watch( win: typeof globalThis ) {
+
+			win.addEventListener( 'pagehide', ()=> this.flush() )
+
+			win.addEventListener( 'visibilitychange', ()=> {
+				if( win.document.visibilityState === 'hidden' ) this.flush()
+			} )
+
 		}
 
 		static dump( native: Storage | null, root: string ) {
@@ -202,6 +306,7 @@ namespace $ {
 		static wrap_net( win: typeof globalThis ) {
 
 			const native = win.fetch.bind( win )
+			this.fetch_orig = native
 
 			win.fetch = async ( input: RequestInfo | URL, init?: RequestInit )=> {
 

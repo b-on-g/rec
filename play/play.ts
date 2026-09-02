@@ -75,10 +75,15 @@ namespace $ {
 			const session = this.session
 			const base = session.bundle.replace( /[^/]*$/, '' )
 
+			const attrs = [
+				session.lang ? ` lang="${ this.escape( session.lang ) }"` : '',
+				session.theme ? ` mol_theme="${ this.escape( session.theme ) }"` : '',
+			].join( '' )
+
 			return [
 				'<!doctype html>',
 				`<!-- ${ generation } -->`,
-				'<html><head>',
+				`<html${ attrs }><head>`,
 				'<meta charset="utf-8"/>',
 				`<base href="${ this.escape( base ) }"/>`,
 				'<link href="web.css" rel="stylesheet"/>',
@@ -229,14 +234,14 @@ namespace $ {
 			} )
 		}
 
-		/** Ждёт, пока фрейм поднимется и подменит окружение. */
+		/** Ждёт, пока фрейм поднимется, подменит окружение и смонтирует приложение. */
 		async ready( timeout = 10000 ) {
 
 			const limit = Date.now() + timeout
 
-			while( !this.win ) {
+			while( !this.win || !this.views.size ) {
 				if( Date.now() > limit ) return $mol_fail( new Error( 'Фрейм не запустился' ) )
-				await this.tick()
+				await this.pause( 16 )
 			}
 
 			await this.settle()
@@ -324,14 +329,24 @@ namespace $ {
 
 		/** Дать приложению доработать: микрозадачи, кадр, отложенные таймеры. */
 		async settle( span = 32 ) {
-			await this.tick()
+			await this.drain()
 			this.clock.warp( this.clock.now + span )
-			await this.tick()
+			await this.drain()
 		}
 
-		tick() {
+		/**
+		 * Прокрутка микрозадач: планировщик фибр $mol сидит именно на них.
+		 * Макрозадачи для этого не годятся, браузер режет их до одной в секунду
+		 * в неактивной вкладке, и проигрывание уползает в минуты.
+		 */
+		async drain( depth = 8 ) {
+			for( let step = 0; step < depth; ++ step ) await Promise.resolve()
+		}
+
+		/** Настоящая пауза. Нужна только там, где ждём загрузку фрейма. */
+		pause( delay = 0 ) {
 			return new Promise< void >( done => {
-				const timer = new this.$.$mol_after_timeout( 0, ()=> {
+				const timer = new this.$.$mol_after_timeout( delay, ()=> {
 					timer.destructor()
 					done()
 				} )

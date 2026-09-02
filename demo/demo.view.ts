@@ -30,36 +30,42 @@ namespace $.$$ {
 			return name ? `Здравствуйте, ${ name }!` : 'Представьтесь, пожалуйста.'
 		}
 
-		@ $mol_action
-		save() {
-			const session = $bog_rec_take.stop()
-			if( session ) this.download( session )
-			$bog_rec_take.start()
+		@ $mol_mem
+		report( next?: $bog_rec_fuzz_report ): $bog_rec_fuzz_report | null {
+			return next ?? null
+		}
+
+		note() {
+
+			const report = this.report()
+
+			const outcome = report
+				? [
+					`Прокликано шагов: ${ report.steps }, записано событий: ${ report.session?.events.length ?? 0 }.`,
+					report.errors.length ? `Ошибки: ${ report.errors.join( ', ' ) }` : 'Ошибок не всплыло.',
+				]
+				: []
+
+			return [
+				... outcome,
+				'Запись забирается из консоли, кнопки для этого нет: `$bog_rec_take.save()` скачает файл, `$bog_rec_take.text()` отдаст JSON.',
+			].join( '\n\n' )
+
 		}
 
 		@ $mol_action
 		fuzz() {
+
 			const report = $mol_wire_sync( $bog_rec_fuzz ).run({
 				root: this,
 				steps: 40,
-				allow: view => view !== this.Save() && view !== this.Fuzz(),
+				allow: view => view !== this.Fuzz(),
 			})
-			if( report.session ) this.download( report.session )
+
+			this.report( report )
+
+			/// Прогон останавливает запись, поэтому заводим следующую
 			$bog_rec_take.start()
-		}
-
-		download( session: $bog_rec_session ) {
-
-			const doc = this.$.$mol_dom_context.document
-			const blob = new Blob([ $bog_rec.text( session ) ], { type: 'application/json' })
-			const uri = URL.createObjectURL( blob )
-
-			const link = doc.createElement( 'a' )
-			link.href = uri
-			link.download = `${ session.root }-${ session.id }.rec.json`
-			link.click()
-
-			URL.revokeObjectURL( uri )
 
 		}
 

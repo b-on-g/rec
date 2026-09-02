@@ -15,9 +15,16 @@ namespace $.$$ {
 
 		@ $mol_mem
 		session(): $bog_rec_session | null {
+
 			const files = this.files()
-			if( !files.length ) return null
-			return $bog_rec.parse( $mol_wire_sync( files[0] ).text() )
+			if( files.length ) return $bog_rec.parse( $mol_wire_sync( files[0] ).text() )
+
+			/// Запись можно открыть и по адресу: `#!rec=https://.../session.rec.json`
+			const uri = this.$.$mol_state_arg.value( 'rec' )
+			if( uri ) return $bog_rec.parse( this.$.$mol_fetch.text( uri ) )
+
+			return null
+
 		}
 
 		/** Номер прогона: смена пересоздаёт и плеер, и фрейм. */
@@ -92,7 +99,7 @@ namespace $.$$ {
 
 			return [
 				`**${ session.root }** · ${ session.events.length } событий · ${ $bog_rec.duration( session ) } мс`,
-				`Проиграно: ${ this.cursor() }`,
+				`Проиграно: ${ this.cursor() } из ${ session.events.length }`,
 				... misses.length ? [ `Пропуски: ${ misses.length }`, ... misses.slice( 0, 5 ) ] : [],
 				... errors.length ? [ `Ошибки на экране:`, ... errors.slice( 0, 5 ) ] : [],
 			].join( '\n\n' )
@@ -111,6 +118,15 @@ namespace $.$$ {
 			this.pulse()
 		}
 
+		/** Шаг назад: фрейм пересобирается и быстро проигрывается до предыдущего события. */
+		@ $mol_action
+		back() {
+			const player = this.player()
+			if( !player ) return
+			this.playing( false )
+			this.rewind( Math.max( 0, player.progress() - 1 ) )
+		}
+
 		@ $mol_action
 		restart() {
 			this.playing( false )
@@ -126,23 +142,38 @@ namespace $.$$ {
 
 			this.playing( false )
 
-			if( index < player.progress() ) {
-				this.rewind( index + 1 )
-			} else {
-				$mol_wire_sync( player ).seek( index + 1 )
-			}
-
-			this.pulse()
+			if( index < player.progress() ) this.rewind( index + 1 )
+			else this.forward( index + 1 )
 
 		}
 
-		/** Назад отматываем пересборкой: проигрывание детерминировано, снимки не нужны. */
+		/**
+		 * Назад отматываем пересборкой фрейма: проигрывание детерминировано, снимки не нужны.
+		 *
+		 * Ожидание вынесено из фибры намеренно. Подвисающее чтение внутри `@ $mol_action`
+		 * заставило бы тело перезапуститься, а вместе с ним и инкремент прогона — вечный цикл.
+		 */
 		rewind( index: number ) {
 			this.generation( this.generation() + 1 )
 			const player = this.player()
 			if( !player ) return
-			$mol_wire_sync( player ).ready()
-			$mol_wire_sync( player ).seek( index )
+			this.drive( player, async ()=> {
+				await player.ready()
+				await player.seek( index )
+			} )
+		}
+
+		forward( index: number ) {
+			const player = this.player()
+			if( !player ) return
+			this.drive( player, ()=> player.seek( index ) )
+		}
+
+		drive( player: $bog_rec_play, task: ()=> Promise< unknown > ) {
+			task().then(
+				()=> this.pulse(),
+				error => $mol_fail_log( error ),
+			)
 		}
 
 		@ $mol_action
