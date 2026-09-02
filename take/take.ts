@@ -185,6 +185,8 @@ namespace $ {
 		/** Уход со страницы — последний момент, когда запись ещё можно спасти. */
 		static watch( win: typeof globalThis ) {
 
+			if( typeof win.addEventListener !== 'function' ) return
+
 			win.addEventListener( 'pagehide', ()=> this.flush() )
 
 			win.addEventListener( 'visibilitychange', ()=> {
@@ -284,6 +286,8 @@ namespace $ {
 
 		static wrap_rand( win: typeof globalThis ) {
 
+			if( typeof win.Math?.random !== 'function' ) return
+
 			const rand = win.Math.random.bind( win.Math )
 			win.Math.random = ()=> {
 				const value = rand()
@@ -304,6 +308,9 @@ namespace $ {
 		}
 
 		static wrap_net( win: typeof globalThis ) {
+
+			/// Рекордер не имеет права ронять хозяина, а окружение бывает и без сети
+			if( typeof win.fetch !== 'function' ) return
 
 			const native = win.fetch.bind( win )
 			this.fetch_orig = native
