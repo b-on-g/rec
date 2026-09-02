@@ -1,0 +1,40 @@
+$bog_rec_app $mol_page
+	title \Реплей сессии
+	tools /
+		<= Open $mol_button_open
+			hint \Открыть запись
+			accept \application/json
+			multiple false
+			files? <=> files? /File
+		<= Restart $mol_button_minor
+			hint \Сначала
+			title \⟲
+			click? <=> restart? null
+		<= Step $mol_button_minor
+			hint \Один шаг
+			title \→
+			click? <=> step? null
+		<= Toggle $mol_button_minor
+			hint \Пуск и пауза
+			title <= toggle_title \▶
+			click? <=> toggle? null
+	body /
+		<= Split $mol_view
+			sub /
+				<= Side $mol_view
+					sub /
+						<= Status $mol_text
+							text <= status \
+						<= Rows $mol_list
+							rows <= rows /
+				<= Screen $bog_rec_app_screen
+					html <= screen \
+	Row!id $mol_button_minor
+		click? <=> row_seek!id? null
+		title <= row_title!id \
+
+$bog_rec_app_screen $mol_view
+	dom_name \iframe
+	minimal_height 480
+	attr *
+		srcdoc <= html \

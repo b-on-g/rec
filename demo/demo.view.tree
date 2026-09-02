@@ -1,0 +1,28 @@
+$bog_rec_demo $mol_page
+	title \Подопытное приложение
+	tools /
+		<= Save $mol_button_minor
+			hint \Сохранить запись сессии
+			title \Скачать запись
+			click? <=> save? null
+		<= Fuzz $mol_button_minor
+			hint \Прокликать себя и сохранить прогон
+			title \Прокликать
+			click? <=> fuzz? null
+	body /
+		<= Counter $mol_row
+			sub /
+				<= Less $mol_button_minor
+					title \−
+					click? <=> less? null
+				<= Value $mol_view
+					sub /
+						<= value_text \
+				<= More $mol_button_minor
+					title \+
+					click? <=> more? null
+		<= Name $mol_string
+			hint \Как вас зовут
+			value? <=> name? \
+		<= Hello $mol_text
+			text <= hello \
