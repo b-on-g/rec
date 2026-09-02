@@ -10586,6 +10586,17 @@ var $;
 
 ;
 	($.$bog_rec_demo) = class $bog_rec_demo extends ($.$mol_page) {
+		save(next){
+			if(next !== undefined) return next;
+			return null;
+		}
+		Save(){
+			const obj = new this.$.$mol_button_minor();
+			(obj.hint) = () => ("Скачать текущую запись файлом");
+			(obj.title) = () => ("Скачать запись");
+			(obj.click) = (next) => ((this.save(next)));
+			return obj;
+		}
 		fuzz(next){
 			if(next !== undefined) return next;
 			return null;
@@ -10664,7 +10675,7 @@ var $;
 			return "Подопытное приложение";
 		}
 		tools(){
-			return [(this.Fuzz())];
+			return [(this.Save()), (this.Fuzz())];
 		}
 		body(){
 			return [
@@ -10675,6 +10686,8 @@ var $;
 			];
 		}
 	};
+	($mol_mem(($.$bog_rec_demo.prototype), "save"));
+	($mol_mem(($.$bog_rec_demo.prototype), "Save"));
 	($mol_mem(($.$bog_rec_demo.prototype), "fuzz"));
 	($mol_mem(($.$bog_rec_demo.prototype), "Fuzz"));
 	($mol_mem(($.$bog_rec_demo.prototype), "less"));
@@ -11784,14 +11797,17 @@ var $;
                     : [];
                 return [
                     ...outcome,
-                    'Запись забирается из консоли, кнопки для этого нет: `$bog_rec_take.save()` скачает файл, `$bog_rec_take.text()` отдаст JSON.',
+                    'Кнопка выше — удобство этой демки. В своё приложение рекордер ничего не рисует: там запись забирают из консоли, `$bog_rec_take.save()` скачает файл, `$bog_rec_take.text()` отдаст JSON.',
                 ].join('\n\n');
+            }
+            save() {
+                $bog_rec_take.save();
             }
             fuzz() {
                 const report = $mol_wire_sync($bog_rec_fuzz).run({
                     root: this,
                     steps: 40,
-                    allow: view => view !== this.Fuzz(),
+                    allow: view => view !== this.Fuzz() && view !== this.Save(),
                 });
                 this.report(report);
                 /// Прогон останавливает запись, поэтому заводим следующую
@@ -11807,6 +11823,9 @@ var $;
         __decorate([
             $mol_mem
         ], $bog_rec_demo.prototype, "report", null);
+        __decorate([
+            $mol_action
+        ], $bog_rec_demo.prototype, "save", null);
         __decorate([
             $mol_action
         ], $bog_rec_demo.prototype, "fuzz", null);

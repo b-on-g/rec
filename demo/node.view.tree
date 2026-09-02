@@ -578,6 +578,10 @@ $mol_text_list_item $mol_paragraph
 $bog_rec_demo $mol_page
 	title \Подопытное приложение
 	tools /
+		<= Save $mol_button_minor
+			hint \Скачать текущую запись файлом
+			title \Скачать запись
+			click? <=> save? null
 		<= Fuzz $mol_button_minor
 			hint \Прокликать себя случайным образом
 			title \Прокликать

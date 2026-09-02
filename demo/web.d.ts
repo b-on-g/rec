@@ -4903,24 +4903,24 @@ declare namespace $ {
 		ReturnType< $mol_button_minor['title'] >
 	>
 	type $mol_button_minor__click_bog_rec_demo_3 = $mol_type_enforce<
-		ReturnType< $bog_rec_demo['fuzz'] >
+		ReturnType< $bog_rec_demo['save'] >
 		,
 		ReturnType< $mol_button_minor['click'] >
 	>
-	type $mol_button_minor__title_bog_rec_demo_4 = $mol_type_enforce<
+	type $mol_button_minor__hint_bog_rec_demo_4 = $mol_type_enforce<
+		string
+		,
+		ReturnType< $mol_button_minor['hint'] >
+	>
+	type $mol_button_minor__title_bog_rec_demo_5 = $mol_type_enforce<
 		string
 		,
 		ReturnType< $mol_button_minor['title'] >
 	>
-	type $mol_button_minor__click_bog_rec_demo_5 = $mol_type_enforce<
-		ReturnType< $bog_rec_demo['less'] >
+	type $mol_button_minor__click_bog_rec_demo_6 = $mol_type_enforce<
+		ReturnType< $bog_rec_demo['fuzz'] >
 		,
 		ReturnType< $mol_button_minor['click'] >
-	>
-	type $mol_view__sub_bog_rec_demo_6 = $mol_type_enforce<
-		readonly(any)[]
-		,
-		ReturnType< $mol_view['sub'] >
 	>
 	type $mol_button_minor__title_bog_rec_demo_7 = $mol_type_enforce<
 		string
@@ -4928,36 +4928,53 @@ declare namespace $ {
 		ReturnType< $mol_button_minor['title'] >
 	>
 	type $mol_button_minor__click_bog_rec_demo_8 = $mol_type_enforce<
+		ReturnType< $bog_rec_demo['less'] >
+		,
+		ReturnType< $mol_button_minor['click'] >
+	>
+	type $mol_view__sub_bog_rec_demo_9 = $mol_type_enforce<
+		readonly(any)[]
+		,
+		ReturnType< $mol_view['sub'] >
+	>
+	type $mol_button_minor__title_bog_rec_demo_10 = $mol_type_enforce<
+		string
+		,
+		ReturnType< $mol_button_minor['title'] >
+	>
+	type $mol_button_minor__click_bog_rec_demo_11 = $mol_type_enforce<
 		ReturnType< $bog_rec_demo['more'] >
 		,
 		ReturnType< $mol_button_minor['click'] >
 	>
-	type $mol_row__sub_bog_rec_demo_9 = $mol_type_enforce<
+	type $mol_row__sub_bog_rec_demo_12 = $mol_type_enforce<
 		readonly(any)[]
 		,
 		ReturnType< $mol_row['sub'] >
 	>
-	type $mol_string__hint_bog_rec_demo_10 = $mol_type_enforce<
+	type $mol_string__hint_bog_rec_demo_13 = $mol_type_enforce<
 		string
 		,
 		ReturnType< $mol_string['hint'] >
 	>
-	type $mol_string__value_bog_rec_demo_11 = $mol_type_enforce<
+	type $mol_string__value_bog_rec_demo_14 = $mol_type_enforce<
 		ReturnType< $bog_rec_demo['name'] >
 		,
 		ReturnType< $mol_string['value'] >
 	>
-	type $mol_text__text_bog_rec_demo_12 = $mol_type_enforce<
+	type $mol_text__text_bog_rec_demo_15 = $mol_type_enforce<
 		ReturnType< $bog_rec_demo['hello'] >
 		,
 		ReturnType< $mol_text['text'] >
 	>
-	type $mol_text__text_bog_rec_demo_13 = $mol_type_enforce<
+	type $mol_text__text_bog_rec_demo_16 = $mol_type_enforce<
 		ReturnType< $bog_rec_demo['note'] >
 		,
 		ReturnType< $mol_text['text'] >
 	>
 	export class $bog_rec_demo extends $mol_page {
+		save( next?: any ): any
+		Save( ): $mol_button_minor
 		fuzz( next?: any ): any
 		Fuzz( ): $mol_button_minor
 		less( next?: any ): any
@@ -4992,6 +5009,7 @@ declare namespace $.$$ {
         hello(): string;
         report(next?: $bog_rec_fuzz_report): $bog_rec_fuzz_report | null;
         note(): string;
+        save(): void;
         fuzz(): void;
     }
 }
