@@ -48,9 +48,14 @@ namespace $.$$ {
 
 			return [
 				... outcome,
-				'Запись забирается из консоли, кнопки для этого нет: `$bog_rec_take.save()` скачает файл, `$bog_rec_take.text()` отдаст JSON.',
+				'Кнопка выше — удобство этой демки. В своё приложение рекордер ничего не рисует: там запись забирают из консоли, `$bog_rec_take.save()` скачает файл, `$bog_rec_take.text()` отдаст JSON.',
 			].join( '\n\n' )
 
+		}
+
+		@ $mol_action
+		save() {
+			$bog_rec_take.save()
 		}
 
 		@ $mol_action
@@ -59,7 +64,7 @@ namespace $.$$ {
 			const report = $mol_wire_sync( $bog_rec_fuzz ).run({
 				root: this,
 				steps: 40,
-				allow: view => view !== this.Fuzz(),
+				allow: view => view !== this.Fuzz() && view !== this.Save(),
 			})
 
 			this.report( report )
