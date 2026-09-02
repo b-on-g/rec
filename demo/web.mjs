@@ -10854,6 +10854,8 @@ var $;
         static detach = null;
         /** Родной `fetch`, чтобы отправка записи не попадала в саму запись. */
         static fetch_orig = null;
+        /** Что вернуть на место при остановке. */
+        static restore = [];
         /** Последняя остановленная сессия: её ещё можно забрать после `stop()`. */
         static last = null;
         static store_key = 'bog_rec_session';
@@ -10866,7 +10868,14 @@ var $;
             const doc = this.win().document;
             const scripts = [...doc.querySelectorAll('script[src]')];
             const found = scripts.find(script => /web\.js(\?|$)/.test(script.src));
-            return found?.src ?? new URL('web.js', doc.baseURI).toString();
+            if (found)
+                return found.src;
+            try {
+                return new URL('web.js', doc.baseURI).toString();
+            }
+            catch {
+                return '';
+            }
         }
         /** Имя корневого класса вида, объявленное в разметке. */
         static root() {
@@ -10897,13 +10906,16 @@ var $;
             this.watch(win);
             return session;
         }
-        /** Останавливает запись и отдаёт сессию. */
+        /** Останавливает запись, снимает подмены и отдаёт сессию. */
         static stop() {
             const session = this.session;
             this.session = null;
             this.last = session;
             this.detach?.();
             this.detach = null;
+            for (const back of this.restore.splice(0))
+                back();
+            this.fetch_orig = null;
             return session;
         }
         /** Текущая или последняя записанная сессия. */
@@ -11092,6 +11104,7 @@ var $;
             if (typeof win.Math?.random !== 'function')
                 return;
             const rand = win.Math.random.bind(win.Math);
+            this.restore.push(() => { win.Math.random = rand; });
             win.Math.random = () => {
                 const value = rand();
                 this.session?.rand.push(value);
@@ -11101,6 +11114,7 @@ var $;
             const uuid = crypto?.randomUUID?.bind(crypto);
             if (!uuid)
                 return;
+            this.restore.push(() => { crypto.randomUUID = uuid; });
             crypto.randomUUID = () => {
                 const value = uuid();
                 this.session?.uuid.push(value);
@@ -11113,6 +11127,7 @@ var $;
                 return;
             const native = win.fetch.bind(win);
             this.fetch_orig = native;
+            this.restore.push(() => { win.fetch = native; });
             win.fetch = async (input, init) => {
                 const request = new win.Request(input, init);
                 const key = await $bog_rec.key(request.clone());
@@ -11356,7 +11371,7 @@ var $;
                 if (!kinds.length)
                     continue;
                 this.fire(view, rand.pick(kinds), rand, config);
-                await this.settle();
+                await (config.settle ?? (() => this.settle()))();
                 const found = this.errors(config.root);
                 if (found.length) {
                     errors.push(...found);

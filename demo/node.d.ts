@@ -1369,7 +1369,7 @@ declare namespace $ {
      * Gap in CSS
      * @see https://page.hyoo.ru/#!=msdb74_bm7nsq
      */
-    let $mol_gap: Record<"text" | "space" | "block" | "blur" | "page" | "round" | "emoji", $mol_style_func<"var", unknown>>;
+    let $mol_gap: Record<"space" | "text" | "block" | "blur" | "page" | "round" | "emoji", $mol_style_func<"var", unknown>>;
 }
 
 declare namespace $ {
@@ -4804,6 +4804,8 @@ declare namespace $ {
         static detach: null | (() => void);
         /** Родной `fetch`, чтобы отправка записи не попадала в саму запись. */
         static fetch_orig: null | typeof globalThis.fetch;
+        /** Что вернуть на место при остановке. */
+        static restore: (() => void)[];
         /** Последняя остановленная сессия: её ещё можно забрать после `stop()`. */
         static last: null | $bog_rec_session;
         static store_key: string;
@@ -4815,7 +4817,7 @@ declare namespace $ {
         static root(): string;
         static started(): boolean;
         static start(config?: $bog_rec_take_config): $bog_rec_session;
-        /** Останавливает запись и отдаёт сессию. */
+        /** Останавливает запись, снимает подмены и отдаёт сессию. */
         static stop(): $bog_rec_session | null;
         /** Текущая или последняя записанная сессия. */
         static current(): $bog_rec_session | null;
@@ -4947,6 +4949,12 @@ declare namespace $ {
         allow?: (view: $mol_view) => boolean;
         /** Что печатать в поля ввода. */
         words?: readonly string[];
+        /**
+         * Чем давать приложению отдышаться между шагами.
+         * В браузере хватает своего таймера, в тестах таймеры замоканы
+         * и прокручиваются вручную.
+         */
+        settle?: () => Promise<unknown>;
     };
     type $bog_rec_fuzz_report = {
         session: $bog_rec_session | null;
