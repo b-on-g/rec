@@ -9,6 +9,12 @@ namespace $ {
 		allow?: ( view: $mol_view )=> boolean
 		/** Что печатать в поля ввода. */
 		words?: readonly string[]
+		/**
+		 * Чем давать приложению отдышаться между шагами.
+		 * В браузере хватает своего таймера, в тестах таймеры замоканы
+		 * и прокручиваются вручную.
+		 */
+		settle?: ()=> Promise< unknown >
 	}
 
 	export type $bog_rec_fuzz_report = {
@@ -119,7 +125,7 @@ namespace $ {
 
 				this.fire( view, rand.pick( kinds ), rand, config )
 
-				await this.settle()
+				await ( config.settle ?? ( ()=> this.settle() ) )()
 
 				const found = this.errors( config.root )
 				if( found.length ) {
