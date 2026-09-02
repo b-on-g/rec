@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ru" mol_view_root mol_theme="$mol_theme_light">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content="Просмотр записанных сессий $mol-приложений: детерминированный реплей вместо видео." />
+		<title>Реплей сессии</title>
+		<link href="web.css" rel="stylesheet" />
+	</head>
+
+	<body mol_view_root>
+		<div mol_view_root="$bog_rec_app"></div>
+		<script src="web.js" charset="utf-8"></script>
+	
+				<script src="/mol/build/client/client.js" charset="utf-8"></script>
+				<script src="web.test.js" charset="utf-8"></script>
+				<script>
+					addEventListener( 'load', ()=> setTimeout( ()=> {
+						const audit =  document.createElement( 'script' )
+						audit.src = 'web.audit.js'
+						document.head.appendChild( audit )
+					}, 500 ) )
+				</script>
+				</body>
+</html>
